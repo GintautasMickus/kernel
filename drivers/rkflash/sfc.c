@@ -51,6 +51,8 @@
 #define SFC_FSR		0x20
 #define SFC_SR		0x24
 #define SFC_RAWISR	0x28
+#define SFC_VER		0x2C
+#define SFC_QOP		0x30
 #define SFC_DMA_TRIGGER	0x80
 #define SFC_DMA_ADDR	0x84
 #define SFC_CMD		0x100
@@ -86,11 +88,19 @@ static void sfc_reset(void)
 	writel(0xFFFFFFFF, g_sfc_reg + SFC_ICLR);
 }
 
+static u16	sfc_ver;
+
+u16 sfc_get_version(void)
+{
+	return sfc_ver;
+}
+
 int sfc_init(void __iomem *reg_addr)
 {
 	g_sfc_reg = reg_addr;
 	sfc_reset();
 	writel(0, g_sfc_reg + SFC_CTRL);
+	sfc_ver = readl(g_sfc_reg + SFC_VER) & 0xffff;
 	return OK;
 }
 

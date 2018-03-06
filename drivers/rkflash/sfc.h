@@ -10,6 +10,8 @@
 #ifndef _SFC_H
 #define _SFC_H
 
+#define SFC_VER_3		0x3 /* ver 3, else ver 1 */
+
 #ifndef BIT
 #define BIT(nr)			(1 << (nr))
 #endif
@@ -115,6 +117,7 @@ union SFCCMD_DATA {
 #define sfc_delay(us)	udelay(us)
 int sfc_init(void __iomem *reg_addr);
 int sfc_request(u32 sfcmd, u32 sfctrl, u32 addr, void *data);
+u16 sfc_get_version(void);
 void sfc_handle_irq(void);
 void sfc_clean_irq(void);
 int rksfc_get_reg_addr(unsigned long *p_sfc_addr);
@@ -122,4 +125,5 @@ unsigned long rksfc_dma_map_single(unsigned long ptr, int size, int dir);
 void rksfc_dma_unmap_single(unsigned long ptr, int size, int dir);
 void rksfc_irq_flag_init(void);
 void rksfc_wait_for_irq_completed(void);
+
 #endif

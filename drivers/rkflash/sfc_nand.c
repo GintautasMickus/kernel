@@ -234,7 +234,8 @@ u32 sfc_nand_prog_page(u8 cs, u32 addr, u32 *p_data, u32 *p_spare)
 
 	sfc_nand_write_en();
 	if (sfc_nand_dev.prog_lines == DATA_LINES_X4 &&
-	    p_nand_info->QE_address == 0xFF)
+	    p_nand_info->QE_address == 0xFF &&
+	    sfc_get_version() != SFC_VER_3)
 		sfc_nand_rw_preset();
 
 	sfcmd.d32 = 0;
@@ -282,7 +283,8 @@ u32 sfc_nand_read_page(u8 cs, u32 addr, u32 *p_data, u32 *p_spare)
 	ret = sfc_nand_wait_busy(&status, 1000 * 1000);
 	ecc = (status >> 4) & 0x03;
 	if (sfc_nand_dev.read_lines == DATA_LINES_X4 &&
-	    p_nand_info->QE_address == 0xFF)
+	    p_nand_info->QE_address == 0xFF &&
+	    sfc_get_version() != SFC_VER_3)
 		sfc_nand_rw_preset();
 
 	sfcmd.d32 = 0;
