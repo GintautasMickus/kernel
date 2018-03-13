@@ -88,6 +88,7 @@
 #define MSCH_ACTIVATE			(0x0038)
 #define MSCH_DEVTODEV			(0x003c)
 
+#define REG_MASK			0xffff0000
 #define cru_read32(offset)		readl_relaxed(RK_CRU_VIRT + offset)
 #define cru_write32(v, offset)		writel_relaxed(v, RK_CRU_VIRT + offset)
 #define grf_read32(offset)		readl_relaxed(RK_GRF_VIRT + offset)
@@ -129,6 +130,8 @@ static __sramdata u32 clkPostDiv2;
 #define PLL_LOCK_STATUS	(0x1 << 31)
 #define PLL_MODE_SLOW 	((1 << (8 + 16)) | (0 << 8))
 #define PLL_MODE_NORM 	((1 << (8 + 16)) | (1 << 8))
+#define PLL_MODE_RST	(((0x1 << 2) << 16) | (0x1 << 2))
+#define PLL_MODE_DERST	(((0x1 << 2) << 16) | (0x0 << 2))
 
 typedef enum PLL_ID_Tag {
 	APLL = 0,
@@ -235,7 +238,109 @@ struct ddr_timing {
 	u32 phy_lp3_odt;
 };
 
+/* ddr suspend need save reg */
+struct pctl_save_reg_tag {
+	u32 SCFG;
+	u32 CMDTSTATEN;
+	u32 MCFG1;
+	u32 MCFG;
+	u32 PPCFG;
+	PCTL_TIMING_T pctl_timing;
+	/* DFI Control Registers */
+	u32 DFITCTRLDELAY;
+	u32 DFIODTCFG;
+	u32 DFIODTCFG1;
+	u32 DFIODTRANKMAP;
+	/* DFI Write Data Registers */
+	u32 DFITPHYWRDATA;
+	u32 DFITPHYWRLAT;
+	u32 DFITPHYWRDATALAT;
+	/* DFI Read Data Registers */
+	u32 DFITRDDATAEN;
+	u32 DFITPHYRDLAT;
+	/* DFI Update Registers */
+	u32 DFITPHYUPDTYPE0;
+	u32 DFITPHYUPDTYPE1;
+	u32 DFITPHYUPDTYPE2;
+	u32 DFITPHYUPDTYPE3;
+	u32 DFITCTRLUPDMIN;
+	u32 DFITCTRLUPDMAX;
+	u32 DFITCTRLUPDDLY;
+	u32 DFIUPDCFG;
+	u32 DFITREFMSKI;
+	u32 DFITCTRLUPDI;
+	/* DFI Status Registers */
+	u32 DFISTCFG0;
+	u32 DFISTCFG1;
+	u32 DFITDRAMCLKEN;
+	u32 DFITDRAMCLKDIS;
+	u32 DFISTCFG2;
+	/* DFI Low Power Register */
+	u32 DFILPCFG0;
+};
+
+struct ddrphy_save_reg_tag {
+	u32 PHY_REG0;
+	u32 PHY_REG1;
+	u32 PHY_REGB;
+	u32 PHY_REGC;
+	u32 PHY_REG11;
+	u32 PHY_REG12;
+	u32 PHY_REG13;
+	u32 PHY_REG14;
+	u32 PHY_REG16;
+	u32 PHY_REG18;
+	u32 PHY_REG20;
+	u32 PHY_REG21;
+	u32 PHY_REG26;
+	u32 PHY_REG27;
+	u32 PHY_REG28;
+	u32 PHY_REG2E;
+	u32 PHY_REG2F;
+	u32 PHY_REG30;
+	u32 PHY_REG31;
+	u32 PHY_REG36;
+	u32 PHY_REG37;
+	u32 PHY_REG38;
+	u32 PHY_REG3E;
+	u32 PHY_REG3F;
+	u32 PHY_REG40;
+	u32 PHY_REG41;
+	u32 PHY_REG46;
+	u32 PHY_REG47;
+	u32 PHY_REG48;
+	u32 PHY_REG4E;
+	u32 PHY_REG4F;
+	u32 PHY_REG50;
+	u32 PHY_REG51;
+	u32 PHY_REG56;
+	u32 PHY_REG57;
+	u32 PHY_REG58;
+	u32 PHY_REG5E;
+	u32 PHY_REG5F;
+	u32 PHY_REGDLL;
+	u32 PHY_REGEC;
+	u32 PHY_REGED;
+	u32 PHY_REGEE;
+	u32 PHY_REGEF;
+	u32 PHY_REGFB;
+	u32 PHY_REGFC;
+	u32 PHY_REGFD;
+	u32 PHY_REGFE;
+};
+
+struct msch_save_reg_tag {
+	u32 ddrconf;
+	NOC_TIMING_T ddrtiming;
+	u32 ddrmode;
+	u32 readlatency;
+	NOC_ACTIVATE_T activate;
+	u32 devtodev;
+};
+
 typedef struct BACKUP_REG_Tag {
+	u32 tag;
+
 	PCTL_TIMING_T pctl_timing;
 	NOC_TIMING_T noc_timing;
 	u32 ddrMR[4];
@@ -249,6 +354,42 @@ typedef struct BACKUP_REG_Tag {
 	u32 readlatency;
 	NOC_ACTIVATE_T noc_activate;
 	u32 devtodev;
+	u32 pctlAddr;
+
+	volatile struct pctl_save_reg_tag pctl;
+	u32 phyAddr;
+	volatile struct ddrphy_save_reg_tag phy;
+	u32 nocAddr;
+	volatile struct msch_save_reg_tag noc;
+
+	u32 pllselect;
+	u32 dpllmodeAddr;
+	u32 dpllSlowMode;
+	u32 dpllNormalMode;
+	u32 dpllResetAddr;
+	u32 dpllReset;
+	u32 dpllDeReset;
+	u32 dpllConAddr;
+	u32 dpllCon[6];
+	u32 dpllLockAddr;
+	u32 dpllLockMask;
+	u32 dpllLockVal;
+	u32 ddrPllSrcDivAddr;
+	u32 ddrPllSrcDiv;
+
+	u32 grfreg1Addr;
+	u32 grfsoccon0;
+	u32 grfreg2Addr;
+	u32 grfsoccon1;
+
+	u32 cruPhySoftrstAddr;
+	u32 cruResetPhy;
+	u32 cruDeresetPhy;
+	u32 cruPctlSoftrstAddr;
+	u32 cruResetPctl;
+	u32 cruDeresetPctl;
+	u32 phySoftrstAddr;
+	u32 endTag;
 } BACKUP_REG_T;
 
 BACKUP_REG_T DEFINE_PIE_DATA(ddr_reg);
@@ -256,7 +397,6 @@ static BACKUP_REG_T *p_ddr_reg;
 
 u32 DEFINE_PIE_DATA(ddr_freq);
 static u32 *p_ddr_freq;
-
 
 static __sramdata u32 clk_gate[RV1108_CRU_CLKGATES_CON_CNT];
 
@@ -1080,7 +1220,6 @@ static void __sramfunc ddr_SRE_2_SRX(u32 freq)
 	u32 *p_devtodev = &(DATA(ddr_reg).devtodev);
 
 	grf_write32(C_ACTIVE_IN_EN, GRF_SOC_CON0);
-
 	idle_port();
 	ddr_move_to_Lowpower_state();
 	DATA(ddr_freq) = freq;
@@ -1409,6 +1548,589 @@ static void _ddr_set_auto_self_refresh(bool en)
 {
 	return;
 }
+
+void PIE_FUNC(ddr_copy) (u32 *pdest, u32 *psrc, u32 words)
+{
+	ddr_copy(pdest, psrc, words);
+}
+
+EXPORT_PIE_SYMBOL(FUNC(ddr_copy));
+
+inline void PIE_FUNC(mmio_write_32)(u32 value, u32 addr)
+{
+	*(volatile u32 *)addr = value;
+}
+
+inline u32 PIE_FUNC(mmio_read_32)(u32 addr)
+{
+	return *(volatile u32 *)addr;
+}
+
+void rv1108_ddr_reg_save(void)
+{
+	p_ddr_reg->tag = 0x56313031;
+	p_ddr_reg->pctlAddr = RV1108_DDR_PCTL_PHYS;
+	p_ddr_reg->phyAddr = RV1108_DDR_PHY_PHYS;
+	p_ddr_reg->nocAddr = RV1108_SERVICE_MSCH_PHYS;
+
+	(fn_to_pie(rockchip_pie_chunk,
+		   &FUNC(ddr_copy)))((u32 *)&(p_ddr_reg->pctl.pctl_timing.togcnt1u),
+				     (u32 *)(RK_DDR_VIRT + DDR_PCTL_TOGCNT1U), 35);
+
+	p_ddr_reg->pctl.pctl_timing.trefi |= (0x1 << 31);
+	p_ddr_reg->pctl.SCFG = ddrpctl_read32(DDR_PCTL_SCFG);
+	p_ddr_reg->pctl.CMDTSTATEN =
+		ddrpctl_read32(DDR_PCTL_CMDTSTATEN);
+	p_ddr_reg->pctl.MCFG1 =
+		ddrpctl_read32(DDR_PCTL_MCFG1);
+	p_ddr_reg->pctl.MCFG =
+		ddrpctl_read32(DDR_PCTL_MCFG);
+	p_ddr_reg->pctl.PPCFG =
+		ddrpctl_read32(DDR_PCTL_PPCFG);
+	p_ddr_reg->pctl.pctl_timing.ddrFreq =
+		ddrpctl_read32(DDR_PCTL_TOGCNT1U) * 2;
+	p_ddr_reg->pctl.DFITCTRLDELAY =
+		ddrpctl_read32(DDR_PCTL_DFITCTRLDELAY);
+	p_ddr_reg->pctl.DFIODTCFG =
+		ddrpctl_read32(DDR_PCTL_DFIODTCFG);
+	p_ddr_reg->pctl.DFIODTCFG1 =
+		ddrpctl_read32(DDR_PCTL_DFIODTCFG1);
+	p_ddr_reg->pctl.DFIODTRANKMAP =
+		ddrpctl_read32(DDR_PCTL_DFIODTRANKMAP);
+	p_ddr_reg->pctl.DFITPHYWRDATA =
+		ddrpctl_read32(DDR_PCTL_DFITPHYWRDATA);
+	p_ddr_reg->pctl.DFITPHYWRLAT =
+		ddrpctl_read32(DDR_PCTL_DFITPHYWRLAT);
+	p_ddr_reg->pctl.DFITPHYWRDATALAT =
+		ddrpctl_read32(DDR_PCTL_DFITPHYWRDATALAT);
+	p_ddr_reg->pctl.DFITRDDATAEN =
+		ddrpctl_read32(DDR_PCTL_DFITRDDATAEN);
+	p_ddr_reg->pctl.DFITPHYRDLAT =
+		ddrpctl_read32(DDR_PCTL_DFITPHYRDLAT);
+	p_ddr_reg->pctl.DFITPHYUPDTYPE0 =
+		ddrpctl_read32(DDR_PCTL_DFITPHYUPDTYPE0);
+	p_ddr_reg->pctl.DFITPHYUPDTYPE1 =
+		ddrpctl_read32(DDR_PCTL_DFITPHYUPDTYPE1);
+	p_ddr_reg->pctl.DFITPHYUPDTYPE2 =
+		ddrpctl_read32(DDR_PCTL_DFITPHYUPDTYPE2);
+	p_ddr_reg->pctl.DFITPHYUPDTYPE3 =
+		ddrpctl_read32(DDR_PCTL_DFITPHYUPDTYPE3);
+	p_ddr_reg->pctl.DFITCTRLUPDMIN =
+		ddrpctl_read32(DDR_PCTL_DFITCTRLUPDMIN);
+	p_ddr_reg->pctl.DFITCTRLUPDMAX =
+		ddrpctl_read32(DDR_PCTL_DFITCTRLUPDMAX);
+	p_ddr_reg->pctl.DFITCTRLUPDDLY =
+		ddrpctl_read32(DDR_PCTL_DFITCTRLUPDDLY);
+
+	p_ddr_reg->pctl.DFIUPDCFG =
+		ddrpctl_read32(DDR_PCTL_DFIUPDCFG);
+	p_ddr_reg->pctl.DFITREFMSKI =
+		ddrpctl_read32(DDR_PCTL_DFITREFMSKI);
+	p_ddr_reg->pctl.DFITCTRLUPDI =
+		ddrpctl_read32(DDR_PCTL_DFITCTRLUPDI);
+	p_ddr_reg->pctl.DFISTCFG0 =
+		ddrpctl_read32(DDR_PCTL_DFISTCFG0);
+	p_ddr_reg->pctl.DFISTCFG1 =
+		ddrpctl_read32(DDR_PCTL_DFISTCFG1);
+	p_ddr_reg->pctl.DFITDRAMCLKEN =
+		ddrpctl_read32(DDR_PCTL_DFITDRAMCLKEN);
+	p_ddr_reg->pctl.DFITDRAMCLKDIS =
+		ddrpctl_read32(DDR_PCTL_DFITDRAMCLKDIS);
+	p_ddr_reg->pctl.DFISTCFG2 =
+		ddrpctl_read32(DDR_PCTL_DFISTCFG2);
+	p_ddr_reg->pctl.DFILPCFG0 =
+		ddrpctl_read32(DDR_PCTL_DFILPCFG0);
+
+	/* PHY */
+	p_ddr_reg->phy.PHY_REG0 = ddrphy_read32(PHYREG00);
+	p_ddr_reg->phy.PHY_REG1 = ddrphy_read32(PHYREG01);
+	p_ddr_reg->phy.PHY_REGB = ddrphy_read32(PHYREG0b);
+	p_ddr_reg->phy.PHY_REGC = ddrphy_read32(PHYREG0c);
+	p_ddr_reg->phy.PHY_REG11 = ddrphy_read32(PHYREG11);
+	p_ddr_reg->phy.PHY_REG12 = ddrphy_read32(PHYREG12);
+	p_ddr_reg->phy.PHY_REG13 = ddrphy_read32(PHYREG13);/* CMD */
+	p_ddr_reg->phy.PHY_REG14 = ddrphy_read32(PHYREG14);/* CLK */
+	p_ddr_reg->phy.PHY_REG16 = ddrphy_read32(PHYREG16);
+	p_ddr_reg->phy.PHY_REG18 = ddrphy_read32(PHYREG18);
+	p_ddr_reg->phy.PHY_REG20 = ddrphy_read32(PHYREG20);
+	p_ddr_reg->phy.PHY_REG21 = ddrphy_read32(PHYREG21);
+	p_ddr_reg->phy.PHY_REG26 = ddrphy_read32(PHYREG26);
+	p_ddr_reg->phy.PHY_REG27 = ddrphy_read32(PHYREG27);
+	p_ddr_reg->phy.PHY_REG28 = ddrphy_read32(PHYREG28);
+	p_ddr_reg->phy.PHY_REG2E = ddrphy_read32(PHYREG2e);
+	p_ddr_reg->phy.PHY_REG2F = ddrphy_read32(PHYREG2f);
+	p_ddr_reg->phy.PHY_REG30 = ddrphy_read32(PHYREG30);
+	p_ddr_reg->phy.PHY_REG31 = ddrphy_read32(PHYREG31);
+	p_ddr_reg->phy.PHY_REG36 = ddrphy_read32(PHYREG36);
+	p_ddr_reg->phy.PHY_REG37 = ddrphy_read32(PHYREG37);
+	p_ddr_reg->phy.PHY_REG38 = ddrphy_read32(PHYREG38);
+	p_ddr_reg->phy.PHY_REG3E = ddrphy_read32(PHYREG3e);
+	p_ddr_reg->phy.PHY_REG3F = ddrphy_read32(PHYREG3f);
+	p_ddr_reg->phy.PHY_REG40 = ddrphy_read32(PHYREG40);
+	p_ddr_reg->phy.PHY_REG41 = ddrphy_read32(PHYREG41);
+	p_ddr_reg->phy.PHY_REG46 = ddrphy_read32(PHYREG46);
+	p_ddr_reg->phy.PHY_REG47 = ddrphy_read32(PHYREG47);
+	p_ddr_reg->phy.PHY_REG48 = ddrphy_read32(PHYREG48);
+	p_ddr_reg->phy.PHY_REG4E = ddrphy_read32(PHYREG4e);
+	p_ddr_reg->phy.PHY_REG4F = ddrphy_read32(PHYREG4f);
+	p_ddr_reg->phy.PHY_REG50 = ddrphy_read32(PHYREG50);
+	p_ddr_reg->phy.PHY_REG51 = ddrphy_read32(PHYREG51);
+	p_ddr_reg->phy.PHY_REG56 = ddrphy_read32(PHYREG56);
+	p_ddr_reg->phy.PHY_REG57 = ddrphy_read32(PHYREG57);
+	p_ddr_reg->phy.PHY_REG58 = ddrphy_read32(PHYREG58);
+	p_ddr_reg->phy.PHY_REG5E = ddrphy_read32(PHYREG5e);
+	p_ddr_reg->phy.PHY_REG5F = ddrphy_read32(PHYREG5f);
+	p_ddr_reg->phy.PHY_REGDLL = ddrphy_read32(PHYREGDLL);
+	p_ddr_reg->phy.PHY_REGEC = ddrphy_read32(PHYREGEC);
+	p_ddr_reg->phy.PHY_REGED = ddrphy_read32(PHYREGED);
+	p_ddr_reg->phy.PHY_REGEE = ddrphy_read32(PHYREGEE);
+	p_ddr_reg->phy.PHY_REGEF = 0;
+
+	if (ddrphy_read32(PHYREG02) & 0x2) {
+		p_ddr_reg->phy.PHY_REGFB = ddrphy_read32(PHYREG2c);
+		p_ddr_reg->phy.PHY_REGFC = ddrphy_read32(PHYREG3c);
+		p_ddr_reg->phy.PHY_REGFD = ddrphy_read32(PHYREG4c);
+		p_ddr_reg->phy.PHY_REGFE = ddrphy_read32(PHYREG5c);
+	} else {
+		p_ddr_reg->phy.PHY_REGFB = ddrphy_read32(PHYREGFB);
+		p_ddr_reg->phy.PHY_REGFC = ddrphy_read32(PHYREGFC);
+		p_ddr_reg->phy.PHY_REGFD = ddrphy_read32(PHYREGFD);
+		p_ddr_reg->phy.PHY_REGFE = ddrphy_read32(PHYREGFE);
+	}
+
+	/* NOC */
+	p_ddr_reg->noc.ddrconf = msch_read32(DDR_MSCH_DDRCONF);
+	p_ddr_reg->noc.ddrtiming.d32 = msch_read32(DDR_MSCH_DDRTIMING);
+	p_ddr_reg->noc.ddrmode = msch_read32(DDR_MSCH_DDRMODE);
+	p_ddr_reg->noc.readlatency = msch_read32(DDR_MSCH_READLATENCY);
+	p_ddr_reg->noc.activate.d32 = msch_read32(DDR_MSCH_ACTIVATE);
+	p_ddr_reg->noc.devtodev = msch_read32(DDR_MSCH_DEVTODEV);
+	p_ddr_reg->pllselect = ddrphy_read32(PHYREGEF) & 0x01;
+	/* DPLL */
+	p_ddr_reg->dpllmodeAddr = RV1108_CRU_PHYS + RV1108_PLL_CONS(DPLL, 3);
+	p_ddr_reg->dpllSlowMode = PLL_MODE_SLOW;
+	p_ddr_reg->dpllNormalMode = PLL_MODE_NORM;
+	p_ddr_reg->dpllResetAddr = RV1108_CRU_PHYS + RV1108_PLL_CONS(DPLL, 4);
+	p_ddr_reg->dpllReset = PLL_MODE_RST;
+	p_ddr_reg->dpllDeReset = PLL_MODE_DERST;
+
+	p_ddr_reg->dpllConAddr = RV1108_CRU_PHYS + RV1108_PLL_CONS(DPLL, 0);
+	p_ddr_reg->dpllCon[0] = cru_read32(RV1108_PLL_CONS(DPLL, 0)) | REG_MASK;
+	p_ddr_reg->dpllCon[1] = cru_read32(RV1108_PLL_CONS(DPLL, 1)) | REG_MASK;
+	p_ddr_reg->dpllCon[2] = cru_read32(RV1108_PLL_CONS(DPLL, 2));
+	p_ddr_reg->dpllCon[3] =
+		(cru_read32(RV1108_PLL_CONS(DPLL, 3)) | REG_MASK) & (~(1 << 8));
+	p_ddr_reg->dpllCon[4] =
+		cru_read32(RV1108_PLL_CONS(DPLL, 3)) | REG_MASK;
+	p_ddr_reg->dpllCon[5] =
+		cru_read32(RV1108_PLL_CONS(DPLL, 3)) | REG_MASK;
+
+	p_ddr_reg->dpllLockAddr = RV1108_CRU_PHYS + RV1108_PLL_CONS(DPLL, 2);
+	p_ddr_reg->dpllLockMask = (1 << 31);
+	p_ddr_reg->dpllLockVal = (1 << 31);
+
+	p_ddr_reg->ddrPllSrcDivAddr =
+		RV1108_CRU_PHYS + RV1108_CRU_CLKSELS_CON(26);
+	p_ddr_reg->ddrPllSrcDiv =
+		(cru_read32(RV1108_CRU_CLKSELS_CON(4)) & 0x307) | (0x307 << 16);
+
+	p_ddr_reg->grfreg1Addr = RV1108_GRF_PHYS + RV1108_GRF_SOC_CON0;
+	p_ddr_reg->grfsoccon0 =
+		(grf_read32(RV1108_GRF_SOC_CON0) & 0x7f) | (0x7f << 16);
+	p_ddr_reg->grfreg2Addr = RV1108_GRF_PHYS + RV1108_GRF_SOC_CON1;
+	p_ddr_reg->grfsoccon1 = grf_read32(RV1108_GRF_SOC_CON1) | (0x1 << 16);
+
+	/* pctl phy soft reset  */
+	p_ddr_reg->cruPhySoftrstAddr =
+		RV1108_CRU_PHYS + RV1108_CRU_SOFTRSTS_CON(1);
+	p_ddr_reg->cruResetPhy = CRU_SET_BITS(0x06, 0, 0x06);
+	p_ddr_reg->cruDeresetPhy = CRU_W_MSK(0, 0x06);
+
+	p_ddr_reg->cruPctlSoftrstAddr =
+		RV1108_CRU_PHYS + RV1108_CRU_SOFTRSTS_CON(2);
+	p_ddr_reg->cruResetPctl = CRU_SET_BITS(0x03, 0, 0x03);
+	p_ddr_reg->cruDeresetPctl = CRU_W_MSK(0, 0x03);
+	p_ddr_reg->phySoftrstAddr =  RV1108_DDR_PHY_PHYS;
+	p_ddr_reg->endTag = 0xFFFFFFFF;
+}
+
+inline void PIE_FUNC(rk_delay_us)(int us)
+{
+	volatile u32 i;
+
+	i = ((24 * us * 195 + 8191) / 8192);
+	if (i)
+		while (i--)
+			;
+}
+
+EXPORT_PIE_SYMBOL(FUNC(rk_delay_us));
+
+inline void PIE_FUNC(resume_move_to_lowpower_state)
+		    (u32 pddr_reg)
+{
+	volatile u32 value;
+
+	while (1) {
+		value =	FUNC(mmio_read_32)(pddr_reg + DDR_PCTL_STAT) & 0x07;
+		if (value == LOW_POWER)
+			break;
+
+		switch (value) {
+		case INIT_MEM:
+			FUNC(mmio_write_32)(CFG_STATE,
+					    pddr_reg + DDR_PCTL_SCTL);
+
+			while ((FUNC(mmio_read_32)(pddr_reg +
+						   DDR_PCTL_STAT) &
+						   0x07) != CONFIG)
+				continue;
+		case CONFIG:
+			FUNC(mmio_write_32)(GO_STATE, pddr_reg + DDR_PCTL_SCTL);
+
+			while ((FUNC(mmio_read_32)(pddr_reg +
+						   DDR_PCTL_STAT) &
+						   0x07) != ACCESS)
+				continue;
+		case ACCESS:
+			FUNC(mmio_write_32)(SLEEP_STATE,
+					    pddr_reg + DDR_PCTL_SCTL);
+			while ((FUNC(mmio_read_32)(pddr_reg +
+						   DDR_PCTL_STAT) &
+						   0x07) != LOW_POWER)
+				continue;
+			break;
+		}
+	}
+}
+
+EXPORT_PIE_SYMBOL(FUNC(resume_move_to_lowpower_state));
+
+inline void PIE_FUNC(resume_move_to_access_state)(u32 pddr_reg)
+{
+	volatile u32 value;
+
+	while (1) {
+		value = FUNC(mmio_read_32)(pddr_reg + DDR_PCTL_STAT) & 0x07;
+
+		if (value == ACCESS)
+			break;
+
+		switch (value) {
+		case LOW_POWER:
+			FUNC(mmio_write_32)(WAKEUP_STATE,
+					    pddr_reg + DDR_PCTL_SCTL);
+			while ((FUNC(mmio_read_32)(pddr_reg +
+						   DDR_PCTL_STAT) &
+						   0x07) != ACCESS)
+				continue;
+			break;
+		case CONFIG:
+			FUNC(mmio_write_32)(GO_STATE, pddr_reg + DDR_PCTL_SCTL);
+			while ((FUNC(mmio_read_32)(pddr_reg +
+						   DDR_PCTL_STAT) &
+						   0x07) != ACCESS)
+				continue;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+EXPORT_PIE_SYMBOL(FUNC(resume_move_to_access_state));
+
+void PIE_FUNC(ddr_reg_resume)(BACKUP_REG_T *p_ddr_reg)
+{
+	volatile u32 *p;
+	u32 *pdest = NULL;
+	u32 *psrc = NULL;
+	u32 i = 0;
+	u32 value;
+
+	/* dpll restore */
+	if (p_ddr_reg->dpllmodeAddr != 0xFFFFFFFF) {
+		p = (u32 *)(p_ddr_reg->dpllmodeAddr);
+		*p = p_ddr_reg->dpllSlowMode;
+	}
+
+	if (p_ddr_reg->dpllConAddr != 0xFFFFFFFF) {
+		p = (u32 *)(p_ddr_reg->dpllConAddr);
+		for (i = 0; i < 6; i++)
+			p[i] = p_ddr_reg->dpllCon[i];
+	}
+
+	if (p_ddr_reg->dpllLockAddr != 0xFFFFFFFF) {
+		p = (u32 *)(p_ddr_reg->dpllLockAddr);
+		while ((*p & p_ddr_reg->dpllLockMask) !=
+		       p_ddr_reg->dpllLockVal)
+			;
+	}
+
+	if (p_ddr_reg->ddrPllSrcDivAddr != 0xFFFFFFFF) {
+		p = (u32 *)(p_ddr_reg->ddrPllSrcDivAddr);
+		*p = p_ddr_reg->ddrPllSrcDiv;
+	}
+
+	if (p_ddr_reg->dpllmodeAddr != 0xFFFFFFFF) {
+		p = (u32 *)(p_ddr_reg->dpllmodeAddr);
+		*p = p_ddr_reg->dpllNormalMode;
+	}
+
+	p = (u32 *)(p_ddr_reg->dpllLockAddr);
+	while ((*p & p_ddr_reg->dpllLockMask) != p_ddr_reg->dpllLockVal)
+		;
+
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REGEF,
+			    p_ddr_reg->phyAddr + PHYREGEF);
+
+	/*softreset pctl phy*/
+	if (p_ddr_reg->cruPctlSoftrstAddr) {
+		FUNC(rk_delay_us)(10);
+
+		p = (u32 *)p_ddr_reg->cruPctlSoftrstAddr;
+		*p = p_ddr_reg->cruResetPctl;
+
+		FUNC(rk_delay_us)(10);
+
+		p = (u32 *)p_ddr_reg->cruPctlSoftrstAddr;
+		*p = p_ddr_reg->cruDeresetPctl;
+
+		FUNC(rk_delay_us)(10);
+
+		value = FUNC(mmio_read_32)(p_ddr_reg->phyAddr + PHYREG00);
+		FUNC(mmio_write_32)(value & (~((1 << 2) | (1 << 3))),
+				    p_ddr_reg->phyAddr + PHYREG00);
+
+		FUNC(rk_delay_us)(10);
+
+		value = FUNC(mmio_read_32)(p_ddr_reg->phyAddr + PHYREG00);
+		FUNC(mmio_write_32)(value | (1 << 2),
+				    p_ddr_reg->phyAddr + PHYREG00);
+
+		FUNC(rk_delay_us)(10);
+
+		value = FUNC(mmio_read_32)(p_ddr_reg->phyAddr + PHYREG00);
+		FUNC(mmio_write_32)(value | ((1 << 3) | (1 << 2)),
+				    p_ddr_reg->phyAddr + PHYREG00);
+
+		FUNC(rk_delay_us)(5);
+	}
+
+	/* phy */
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG13,
+			    p_ddr_reg->phyAddr + PHYREG13);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG14,
+			    p_ddr_reg->phyAddr + PHYREG14);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG26,
+			    p_ddr_reg->phyAddr + PHYREG26);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG27,
+			    p_ddr_reg->phyAddr + PHYREG27);
+
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG36,
+			    p_ddr_reg->phyAddr + PHYREG36);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG37,
+			    p_ddr_reg->phyAddr + PHYREG37);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG46,
+			    p_ddr_reg->phyAddr + PHYREG46);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG47,
+			    p_ddr_reg->phyAddr + PHYREG47);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG56,
+			    p_ddr_reg->phyAddr + PHYREG56);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG57,
+			    p_ddr_reg->phyAddr + PHYREG57);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REGDLL,
+			    p_ddr_reg->phyAddr + PHYREGDLL);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG28,
+			    p_ddr_reg->phyAddr + PHYREG28);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG38,
+			    p_ddr_reg->phyAddr + PHYREG38);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG48,
+			    p_ddr_reg->phyAddr + PHYREG48);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG58,
+			    p_ddr_reg->phyAddr + PHYREG58);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG0,
+			    p_ddr_reg->phyAddr + PHYREG00);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG1,
+			    p_ddr_reg->phyAddr + PHYREG01);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REGB,
+			    p_ddr_reg->phyAddr + PHYREG0b);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REGC,
+			    p_ddr_reg->phyAddr + PHYREG0c);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG11,
+			    p_ddr_reg->phyAddr + PHYREG11);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG12,
+			    p_ddr_reg->phyAddr + PHYREG12);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG16,
+			    p_ddr_reg->phyAddr + PHYREG16);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG18,
+			    p_ddr_reg->phyAddr + PHYREG18);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG20,
+			    p_ddr_reg->phyAddr + PHYREG20);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG21,
+			    p_ddr_reg->phyAddr + PHYREG21);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG30,
+			    p_ddr_reg->phyAddr + PHYREG30);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG31,
+			    p_ddr_reg->phyAddr + PHYREG31);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG40,
+			    p_ddr_reg->phyAddr + PHYREG40);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG41,
+			    p_ddr_reg->phyAddr + PHYREG41);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG50,
+			    p_ddr_reg->phyAddr + PHYREG50);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG51,
+			    p_ddr_reg->phyAddr + PHYREG51);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG5E,
+			    p_ddr_reg->phyAddr + PHYREG5e);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG5F,
+			    p_ddr_reg->phyAddr + PHYREG5f);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG4E,
+			    p_ddr_reg->phyAddr + PHYREG4e);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG4F,
+			    p_ddr_reg->phyAddr + PHYREG4f);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG3E,
+			    p_ddr_reg->phyAddr + PHYREG3e);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG3F,
+			    p_ddr_reg->phyAddr + PHYREG3f);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG2E,
+			    p_ddr_reg->phyAddr + PHYREG2e);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG2F,
+			    p_ddr_reg->phyAddr + PHYREG2f);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG12,
+			    p_ddr_reg->phyAddr + PHYREG12);
+	FUNC(mmio_write_32)(p_ddr_reg->phy.PHY_REG18,
+			    p_ddr_reg->phyAddr + PHYREG18);
+
+	/* phy training gate */
+	FUNC(mmio_write_32)(0x02, p_ddr_reg->phyAddr + PHYREG02);
+
+	p = (u32 *)p_ddr_reg->phyAddr;
+	p[0xb0 / 4] = p_ddr_reg->phy.PHY_REGFB;
+	p[0xb4 / 4] = p_ddr_reg->phy.PHY_REGFB;
+	p[0xf0 / 4] = p_ddr_reg->phy.PHY_REGFC;
+	p[0xf4 / 4] = p_ddr_reg->phy.PHY_REGFC;
+	p[0x130 / 4] = p_ddr_reg->phy.PHY_REGFD;
+	p[0x134 / 4] = p_ddr_reg->phy.PHY_REGFD;
+	p[0x170 / 4] = p_ddr_reg->phy.PHY_REGFE;
+	p[0x174 / 4] = p_ddr_reg->phy.PHY_REGFE;
+
+	pdest =  (u32 *)(p_ddr_reg->pctlAddr + DDR_PCTL_TOGCNT1U);
+	psrc = (u32 *)&p_ddr_reg->pctl.pctl_timing.togcnt1u;
+	for (i = 0; i < 35; i++)
+		pdest[i] = psrc[i];
+
+	/* pddr_reg->MCMD = 0x00300002; */
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.SCFG,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_SCFG);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.CMDTSTATEN,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_CMDTSTATEN);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.MCFG1,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_MCFG1);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.MCFG,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_MCFG);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.PPCFG,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_PPCFG);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITCTRLDELAY,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITCTRLDELAY);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFIODTCFG,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFIODTCFG);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFIODTCFG1,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFIODTCFG1);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFIODTRANKMAP,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFIODTRANKMAP);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITPHYWRDATA,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITPHYWRDATA);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITPHYWRLAT,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITPHYWRLAT);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITPHYWRDATALAT,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITPHYWRDATALAT);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITRDDATAEN,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITRDDATAEN);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITPHYRDLAT,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITPHYRDLAT);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITPHYUPDTYPE0,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITPHYUPDTYPE0);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITPHYUPDTYPE1,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITPHYUPDTYPE1);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITPHYUPDTYPE2,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITPHYUPDTYPE2);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITPHYUPDTYPE3,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITPHYUPDTYPE3);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITCTRLUPDMIN,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITCTRLUPDMIN);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITCTRLUPDMAX,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITCTRLUPDMAX);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITCTRLUPDDLY,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITCTRLUPDDLY);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFIUPDCFG,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFIUPDCFG);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITREFMSKI,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITREFMSKI);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITCTRLUPDI,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITCTRLUPDI);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFISTCFG0,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFISTCFG0);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFISTCFG1,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFISTCFG1);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITDRAMCLKEN,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITDRAMCLKEN);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFITDRAMCLKDIS,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFITDRAMCLKDIS);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFISTCFG2,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFISTCFG2);
+	FUNC(mmio_write_32)(p_ddr_reg->pctl.DFILPCFG0,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_DFILPCFG0);
+
+	p = (u32 *)(p_ddr_reg->grfreg1Addr);
+	*p = p_ddr_reg->grfsoccon0;
+
+	p = (u32 *)(p_ddr_reg->grfreg2Addr);
+	*p = p_ddr_reg->grfsoccon1;
+
+	FUNC(rk_delay_us)(5);
+
+    /* power up */
+	FUNC(mmio_write_32)(power_up_start,
+			    p_ddr_reg->pctlAddr + DDR_PCTL_POWCTL);
+
+	while (!(FUNC(mmio_read_32)(p_ddr_reg->pctlAddr +
+				    DDR_PCTL_POWSTAT) & power_up_done))
+		;
+
+	FUNC(mmio_write_32)(p_ddr_reg->noc.ddrconf,
+			    p_ddr_reg->nocAddr + DDR_MSCH_DDRCONF);
+	FUNC(mmio_write_32)(p_ddr_reg->noc.ddrtiming.d32,
+			    p_ddr_reg->nocAddr + DDR_MSCH_DDRTIMING);
+	FUNC(mmio_write_32)(p_ddr_reg->noc.ddrmode,
+			    p_ddr_reg->nocAddr + DDR_MSCH_DDRMODE);
+	FUNC(mmio_write_32)(p_ddr_reg->noc.readlatency,
+			    p_ddr_reg->nocAddr + DDR_MSCH_READLATENCY);
+	FUNC(mmio_write_32)(p_ddr_reg->noc.activate.d32,
+			    p_ddr_reg->nocAddr + DDR_MSCH_ACTIVATE);
+	FUNC(mmio_write_32)(p_ddr_reg->noc.devtodev,
+			    p_ddr_reg->nocAddr + DDR_MSCH_DEVTODEV);
+
+	*((u32 *)(RV1108_GRF_PHYS + 0x400)) = C_ACTIVE_IN_EN;
+	FUNC(resume_move_to_lowpower_state) (p_ddr_reg->pctlAddr);
+	*((u32 *)(RV1108_PMU_PHYS + 0x18)) = (1 << 13);
+	FUNC(resume_move_to_access_state) (p_ddr_reg->pctlAddr);
+	*((u32 *)(RV1108_GRF_PHYS + 0x400)) = C_ACTIVE_IN_DISABLE;
+}
+
+char *rv1108_ddr_get_resume_code_info(u32 *size)
+{
+	*size = 0x880;
+	return (char *)(fn_to_pie(rockchip_pie_chunk, &FUNC(ddr_reg_resume)));
+}
+EXPORT_SYMBOL(rv1108_ddr_get_resume_code_info);
+
+char *rv1108_ddr_get_resume_data_info(u32 *size)
+{
+	*size = sizeof(DATA(ddr_reg));
+	return (char *)kern_to_pie(rockchip_pie_chunk, &DATA(ddr_reg));
+}
+EXPORT_SYMBOL(rv1108_ddr_get_resume_data_info);
 
 int ddr_init(u32 freq, void *arg)
 {

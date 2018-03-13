@@ -311,6 +311,9 @@ enum rk312x_cru_clk_gate {
 #define RV1108_CRU_SOFTRSTS_CON_CNT	(13)
 #define RV1108_CRU_SOFTRSTS_CON(i)	(RV1108_CRU_SOFTRST_CON + ((i) * 4))
 
+#define RV1108_CRU_MISC_CON_CNT		(10)
+#define RV1108_CRU_MISCS_CON(i)		(RV1108_CRU_MISC_CON + ((i) * 4))
+
 #define RV1108_CRU_CONS_GATEID(i)	(16 * (i))
 #define RV1108_CRU_GATEID_CONS(ID)	(RV1108_CRU_CLKGATE_CON\
 	+ ((ID) / 16) * 4)

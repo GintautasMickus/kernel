@@ -123,12 +123,26 @@ cpu1loop:
 	B cpu1loop           /* ; if any failure, loop */
 
 cpu0Run:
+
+	adr r1, 9b	/* boot ram base */
+	ldr r5, 8f	/* resume data offset, from ram base */
+	add r5, r5, r1	/* resume data addr */
+
+	ldr r3,[r5,#(RKPM_BOOTDATA_DDR_F*4)]
+	cmp r3,#1
+	bne res
+
+	ldr r1,[r5,#(RKPM_BOOTDATA_DDRCODE*4)] /* ddr resume code */
+	ldr r0,[r5,#(RKPM_BOOTDATA_DDRDATA*4)] /* ddr resume data */
+	blx r1
+	b out
+res:
+
 	/* ddr deretention */
 	ldr r1, =RV1108_PMU_PWRMODE_COMMON_CON
 	ldr r2, =RV1108_DDR_DERETION
 	str r2, [r1]
 
-	/* dpll lock */
 dpll_unlock:
 	ldr r1, =RV1108_CRU_DPLL_CON2
 	ldr r2, [r1]
@@ -136,9 +150,7 @@ dpll_unlock:
 	cmp r2, #0
 	beq dpll_unlock
 
-	adr r1, 9b	/* boot ram base */
-	ldr r5, 8f	/* resume data offset, from ram base */
-	add r5, r5, r1	/* resume data addr */
+out:
 	ldr pc, [r5, #(RKPM_BOOTDATA_CPUCODE*4)]
-8:      .long (0x00 + 0x700)	/* RKPM_BOOT_CODE_OFFSET+RKPM_BOOT_CODE_SIZE */
+8:      .long (0x00 + 0x200)	/* RKPM_BOOT_CODE_OFFSET+RKPM_BOOT_CODE_SIZE */
 ENDPROC(rv1108_pm_slp_cpu_resume)

@@ -69,6 +69,7 @@
 #define DDR_PCTL_DFIODTRANKMAP		0x024c
 #define DDR_PCTL_DFITPHYWRDATA		0x0250
 #define DDR_PCTL_DFITPHYWRLAT		0x0254
+#define DDR_PCTL_DFITPHYWRDATALAT	0x0258
 #define DDR_PCTL_DFITRDDATAEN		0x0260
 #define DDR_PCTL_DFITPHYRDLAT           0x0264
 #define DDR_PCTL_DFITPHYUPDTYPE0        0x0270
@@ -176,6 +177,8 @@
 #define PHYREG27	0x9c
 #define PHYREG28	0xa0
 #define PHYREG2b	0xac
+#define PHYREG2c	0xb0
+#define PHYREG2d	0xb4
 #define PHYREG2e	0xb8
 #define PHYREG2f	0xbc
 #define PHYREG30	0xc0
@@ -184,6 +187,8 @@
 #define PHYREG37	0xdc
 #define PHYREG38	0xe0
 #define PHYREG3b	0xec
+#define PHYREG3c	0xf0
+#define PHYREG3d	0xf4
 #define PHYREG3e	0xf8
 #define PHYREG3f	0xfc
 #define PHYREG40	0x100
@@ -192,6 +197,8 @@
 #define PHYREG47	0x11c
 #define PHYREG48	0x120
 #define PHYREG4b	0x12c
+#define PHYREG4c	0x130
+#define PHYREG4d	0x134
 #define PHYREG4e	0x138
 #define PHYREG4f	0x13c
 #define PHYREG50	0x140
@@ -200,6 +207,8 @@
 #define PHYREG57	0x15c
 #define PHYREG58	0x160
 #define PHYREG5b	0x16c
+#define PHYREG5c	0x170
+#define PHYREG5d	0x174
 #define PHYREG5e	0x178
 #define PHYREG5f	0x17c
 #define PHYREG70	0x1c0
@@ -306,6 +315,10 @@
 #define PHYREGE9	0x3a4
 #define PHYREGEA	0x3a8
 #define PHYREGEB	0x3ac
+#define PHYREGEC	0x3b0
+#define PHYREGED	0x3b4
+#define PHYREGEE	0x3b8
+#define PHYREGEF	0x3bc
 #define PHYREGF0	0x3c0
 #define PHYREGF1	0x3c4
 #define PHYREGF2	0x3c8
