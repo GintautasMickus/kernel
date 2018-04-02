@@ -8,6 +8,14 @@ obj-$(CONFIG_CPU_RK312X) += rk3126b.o
 obj-$(CONFIG_CPU_RK3188) += rk3188.o
 obj-$(CONFIG_CPU_RK3288) += rk3288.o
 obj-$(CONFIG_CPU_RK322X) += rk322x.o
+ifdef CONFIG_FUNCTION_TRACER
+CFLAGS_REMOVE_rv1108.o = -pg -fno-omit-frame-pointer -fno-optimize-sibling-calls
+CFLAGS_REMOVE_rk3036.o = -pg -fno-omit-frame-pointer -fno-optimize-sibling-calls
+CFLAGS_REMOVE_rk312x.o = -pg -fno-omit-frame-pointer -fno-optimize-sibling-calls
+CFLAGS_REMOVE_rk3126b.o = -pg -fno-omit-frame-pointer -fno-optimize-sibling-calls
+CFLAGS_REMOVE_rk3188.o = -pg -fno-omit-frame-pointer -fno-optimize-sibling-calls
+CFLAGS_REMOVE_rk3288.o = -pg -fno-omit-frame-pointer -fno-optimize-sibling-calls
+endif
 obj-$(CONFIG_ARM_PSCI) += psci.o
 obj-$(CONFIG_ARM_PSCI) += psci_ddr.o
 obj-$(CONFIG_ARM_PSCI) += ddr_rk312x.o

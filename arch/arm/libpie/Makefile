@@ -4,6 +4,11 @@
 #
 ccflags-y	:= -fpic -mno-single-pic-base -fno-builtin
 
+ifdef CONFIG_FUNCTION_TRACER
+ORIG_CFLAGS	:= $(KBUILD_CFLAGS)
+KBUILD_CFLAGS	= $(subst -pg,,$(ORIG_CFLAGS)) -fomit-frame-pointer -foptimize-sibling-calls
+endif
+
 obj-y		:= relocate.o empty.o
 obj-y		+= lib1funcs.o ashldi3.o string.o
 
