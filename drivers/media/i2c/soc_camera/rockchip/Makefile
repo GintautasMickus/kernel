@@ -18,3 +18,4 @@ obj-$(CONFIG_VIDEO_S5K4H8) += samsung_camera_module.o rk_camera_module.o s5k4h8_
 obj-$(CONFIG_VCM_VM149C) += vm149c_v4l2-i2c-subdev.o
 obj-$(CONFIG_VCM_GT9760S) += gt9760s_v4l2-i2c-subdev.o
 obj-$(CONFIG_VIDEO_OV5695) += ov_camera_module.o rk_camera_module.o ov5695_v4l2-i2c-subdev.o
+obj-$(CONFIG_VIDEO_SC2363) += sc_camera_module.o rk_camera_module.o sc2363_v4l2-i2c-subdev.o
