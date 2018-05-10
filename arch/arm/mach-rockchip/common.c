@@ -186,7 +186,7 @@ extern void console_disable_suspend(void);
 
 static int panic_event(struct notifier_block *this, unsigned long event, void *ptr)
 {
-#if CONFIG_RK_DEBUG_UART >= 0
+#if defined(CONFIG_PRINTK) && CONFIG_RK_DEBUG_UART >= 0
 	console_disable_suspend();
 #endif
 	is_panic = true;
