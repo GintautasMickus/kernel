@@ -453,7 +453,7 @@ config MFD_RK816
 	select REGMAP_I2C
 	select REGMAP_IRQ
 	select MFD_CORE
-	select RTC_RK816
+	select RTC_RK816 if RTC_CLASS
 	select REGULATOR_RK816
 	select INPUT_RK816_PWRKEY
 	help
