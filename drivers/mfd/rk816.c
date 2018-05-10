@@ -135,13 +135,17 @@ int rk816_i2c_read(struct rk816 *rk8xx, char reg, int count, u8 *dest)
 	msgs[0].buf = &reg;
 	msgs[0].flags = i2c->flags;
 	msgs[0].len = 1;
+#ifdef CONFIG_I2C_ROCKCHIP_COMPAT
 	msgs[0].scl_rate = RK816_I2C_SPEED;
+#endif
 
 	msgs[1].buf = (u8 *)dest;
 	msgs[1].addr = i2c->addr;
 	msgs[1].flags =  i2c->flags | I2C_M_RD;
 	msgs[1].len = 1;
+#ifdef CONFIG_I2C_ROCKCHIP_COMPAT
 	msgs[1].scl_rate = RK816_I2C_SPEED;
+#endif
 
 	ret = i2c_transfer(adap, msgs, 2);
 
@@ -171,7 +175,9 @@ int rk816_i2c_write(struct rk816 *rk8xx, char reg, int count,  const u8 src)
 	msg.buf = &tx_buf[0];
 	msg.len = 1 + 1;
 	msg.flags = i2c->flags;
+#ifdef CONFIG_I2C_ROCKCHIP_COMPAT
 	msg.scl_rate = RK816_I2C_SPEED;
+#endif
 
 	ret = i2c_transfer(adap, &msg, 1);
 
