@@ -108,6 +108,9 @@ config ARM_OMAP2PLUS_CPUFREQ
 config ARM_ROCKCHIP_CPUFREQ
 	bool "CPUfreq driver for Rockchip CPUs"
 	depends on ARCH_ROCKCHIP
+	depends on DVFS
+	select CPU_FREQ_TABLE
+	select PM_OPP
 	default y
 	help
 	  This enables the CPUfreq driver for Rockchips CPUs.
