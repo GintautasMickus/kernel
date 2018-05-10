@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 config ARCH_ROCKCHIP
 	bool "Rockchip SoCs" if ARCH_MULTI_V7
-	select PIE
+	select PIE if (SUSPEND || DVFS)
 	select PINCTRL
 	select PINCTRL_RK3368 if (CPU_RV110X || CPU_RK322X)
 	select PINCTRL_ROCKCHIP if (CPU_RK2928 || CPU_RK30XX || CPU_RK3066B || CPU_RK3188 || CPU_RK3288 || CPU_RK3036 || CPU_RK312X)
