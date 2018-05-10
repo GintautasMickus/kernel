@@ -236,6 +236,7 @@ DT_MACHINE_START(RV1107_DT, "Rockchip RV1107")
 	.restart	= rv1108_restart,
 MACHINE_END
 
+#ifdef CONFIG_PIE
 char PIE_DATA(sram_stack)[1024];
 EXPORT_PIE_SYMBOL(DATA(sram_stack));
 
@@ -283,4 +284,4 @@ static int __init rv1108_ddr_init(void)
 	return 0;
 }
 arch_initcall_sync(rv1108_ddr_init);
-
+#endif /* CONFIG_PIE */
