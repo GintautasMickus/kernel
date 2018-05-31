@@ -1186,6 +1186,17 @@ static irqreturn_t fiq_debugger_uart_irq(int irq, void *dev)
 	return IRQ_HANDLED;
 }
 
+#ifdef CONFIG_FIQ_GLUE
+
+#ifdef CONFIG_ARCH_ROCKCHIP
+static irqreturn_t fiq_debugger_dummy_irq(int irq, void *dev)
+{
+	return IRQ_HANDLED;
+}
+#endif
+
+#endif
+
 #ifdef CONFIG_FIQ_DEBUGGER_EL3_TO_EL1
 void fiq_debugger_fiq(void *regs)
 {
@@ -1574,12 +1585,20 @@ static int fiq_debugger_probe(struct platform_device *pdev)
 			goto err_register_irq;
 		}
 #ifdef CONFIG_ARCH_ROCKCHIP
-		//set state->fiq to secure state, so fiq is avalable
+		/* set state->fiq to secure state, so fiq is available */
 		gic_set_irq_secure(irq_get_irq_data(state->fiq));
-		//set state->fiq priority a little higher than other interrupts (normal is 0xa0)
+		/*
+		 * set state->fiq priority a little higher than other
+		 * interrupts (normal is 0xa0)
+		 */
 		gic_set_irq_priority(irq_get_irq_data(state->fiq), 0x90);
+
+		ret = request_irq(state->fiq, fiq_debugger_dummy_irq,
+				  IRQF_NO_SUSPEND, "debug", state);
+		if (ret)
+			pr_err("%s: could not install fiq dummy handler\n", __func__);
 #endif
-		pdata->fiq_enable(pdev, state->fiq, 1);
+
 		}
 #endif
 	} else {
