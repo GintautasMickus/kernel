@@ -96,10 +96,6 @@
 			rockchip,ion_heap = <4>;
 			reg = <0x00000000 0x04400000>; /* 68MB */
 		};
-		rockchip,ion-heap@0 { /* VMALLOC HEAP */
-			compatible = "rockchip,ion-heap";
-			rockchip,ion_heap = <0>;
-		};
 	};
 
 	backlight {
