@@ -288,6 +288,7 @@ struct clk_divider {
 	u8		flags;
 	const struct clk_div_table	*table;
 	spinlock_t	*lock;
+	u32		max_rate;
 };
 
 #define CLK_DIVIDER_ONE_BASED		BIT(0)

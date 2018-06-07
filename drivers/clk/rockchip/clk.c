@@ -473,6 +473,10 @@ static int rkclk_init_fracinfo(struct device_node *np, void __iomem *addr)
 		ret = 0;
 	}
 
+	ret = of_property_read_u32(np, "rockchip,max-rate", &frac->max_rate);
+	if (ret != 0)
+		frac->max_rate = 0;
+
 	frac->reg = addr;
 	ret = of_property_read_u32_index(np, "rockchip,bits", 0, &shift);
 	if (ret)

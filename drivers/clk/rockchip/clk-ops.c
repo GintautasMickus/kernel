@@ -122,7 +122,9 @@ static long clk_fracdiv_round_rate(struct clk_hw *hw, unsigned long rate,
 {
 	struct clk *clk = hw->clk;
 	struct clk *parent = clk->parent;
+	struct clk_divider *div = to_clk_divider(hw);
 	long rate_out;
+	u32 div_out;
 
 	//FIXME: now just simply return rate
 	/*
@@ -134,6 +136,12 @@ static long clk_fracdiv_round_rate(struct clk_hw *hw, unsigned long rate,
 		*prate = parent->parent->rate;
 	else
 		*prate = parent->rate;
+
+	if (div->max_rate && *prate > div->max_rate) {
+		div_out = DIV_ROUND_UP(parent->parent->rate,
+				       div->max_rate);
+		*prate = parent->parent->rate / div_out;
+	}
 
 	return rate_out;
 }
