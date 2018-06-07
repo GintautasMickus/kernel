@@ -12,6 +12,8 @@
  * GNU General Public License for more details.
  */
 #include <dt-bindings/clock/rockchip,rv1108.h>
+#define RV1108_I2S_FRAC_MAX_RATE	600000000
+#define RV1108_UART_FRAC_MAX_RATE	600000000
 
 /{
 	clocks {
@@ -531,6 +533,7 @@
 						compatible = "rockchip,rk3188-frac-con";
 						clocks = <&clk_i2s0_pll_div>;
 						clock-output-names = "i2s0_frac";
+						rockchip,max-rate = <RV1108_I2S_FRAC_MAX_RATE>;
 						/* numerator	denominator */
 						rockchip,bits = <0 32>;
 						rockchip,clkops-idx =
@@ -549,6 +552,7 @@
 						compatible = "rockchip,rk3188-frac-con";
 						clocks = <&clk_i2s1_pll_div>;
 						clock-output-names = "i2s1_frac";
+						rockchip,max-rate = <RV1108_I2S_FRAC_MAX_RATE>;
 						/* numerator	denominator */
 						rockchip,bits = <0 32>;
 						rockchip,clkops-idx =
@@ -567,6 +571,7 @@
 						compatible = "rockchip,rk3188-frac-con";
 						clocks = <&clk_i2s2_pll_div>;
 						clock-output-names = "i2s2_frac";
+						rockchip,max-rate = <RV1108_I2S_FRAC_MAX_RATE>;
 						/* numerator	denominator */
 						rockchip,bits = <0 32>;
 						rockchip,clkops-idx =
@@ -677,6 +682,7 @@
 						clocks = <&clk_uart0_pll>;
 						clock-output-names = "clk_uart0_pll";
 						rockchip,div-type = <CLK_DIVIDER_PLUS_ONE>;
+						rockchip,max-rate = <RV1108_UART_FRAC_MAX_RATE>;
 						#clock-cells = <0>;
 						rockchip,clkops-idx =
 							<CLKOPS_RATE_MUX_DIV>;
@@ -722,6 +728,7 @@
 						clocks = <&clk_uart1_pll>;
 						clock-output-names = "clk_uart1_pll";
 						rockchip,div-type = <CLK_DIVIDER_PLUS_ONE>;
+						rockchip,max-rate = <RV1108_UART_FRAC_MAX_RATE>;
 						#clock-cells = <0>;
 						rockchip,clkops-idx =
 							<CLKOPS_RATE_MUX_DIV>;
@@ -767,6 +774,7 @@
 						clocks = <&clk_uart2_pll>;
 						clock-output-names = "clk_uart2_pll";
 						rockchip,div-type = <CLK_DIVIDER_PLUS_ONE>;
+						rockchip,max-rate = <RV1108_UART_FRAC_MAX_RATE>;
 						#clock-cells = <0>;
 						rockchip,clkops-idx =
 							<CLKOPS_RATE_MUX_DIV>;
@@ -810,6 +818,7 @@
 						compatible = "rockchip,rk3188-frac-con";
 						clocks = <&clk_uart0_pll_div>;
 						clock-output-names = "uart0_frac";
+						rockchip,max-rate = <RV1108_UART_FRAC_MAX_RATE>;
 						/* numerator	denominator */
 						rockchip,bits = <0 32>;
 						rockchip,clkops-idx =
@@ -828,6 +837,7 @@
 						compatible = "rockchip,rk3188-frac-con";
 						clocks = <&clk_uart1_pll_div>;
 						clock-output-names = "uart1_frac";
+						rockchip,max-rate = <RV1108_UART_FRAC_MAX_RATE>;
 						/* numerator	denominator */
 						rockchip,bits = <0 32>;
 						rockchip,clkops-idx =
@@ -846,6 +856,7 @@
 						compatible = "rockchip,rk3188-frac-con";
 						clocks = <&clk_uart2_pll_div>;
 						clock-output-names = "uart2_frac";
+						rockchip,max-rate = <RV1108_UART_FRAC_MAX_RATE>;
 						/* numerator	denominator */
 						rockchip,bits = <0 32>;
 						rockchip,clkops-idx =
