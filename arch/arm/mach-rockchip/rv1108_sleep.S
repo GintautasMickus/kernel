@@ -98,6 +98,7 @@
 #define RV1108_CRU_DPLL_LOCK			(0x80000000)
 
 .text
+.arm
 ENTRY(rv1108_pm_slp_cpu_while_tst)
 	stmfd sp!, { r3 - r12, lr }
 1:	mov r3, r3
