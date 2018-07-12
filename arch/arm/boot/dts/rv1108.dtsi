@@ -161,7 +161,7 @@
 				rockchip,priority = <3 3>;
 			};
 			dma {
-				reg = <0x31060080 0x20>;
+				reg = <0x31060000 0x20>;
 			};
 			crypto {
 				reg = <0x31060100 0x20>;
