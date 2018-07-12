@@ -47,23 +47,7 @@ static int rv1108_hw_params(struct snd_pcm_substream *substream,
 	if (ret < 0)
 		return ret;
 
-	switch (params_rate(params)) {
-	case 8000:
-	case 16000:
-	case 24000:
-	case 32000:
-	case 48000:
-		mclk = 12288000;
-		break;
-	case 11025:
-	case 22050:
-	case 44100:
-		mclk = 11289600;
-		break;
-	default:
-		return -EINVAL;
-	}
-
+	mclk = params_rate(params) * 256;
 	ret = snd_soc_dai_set_sysclk(cpu_dai, 0, mclk, SND_SOC_CLOCK_OUT);
 	if (ret < 0) {
 		dev_err(cpu_dai->dev, "failed to set sysclk for cpu dai\n");
