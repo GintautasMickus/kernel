@@ -55,7 +55,6 @@ static void dsp_set_div_clk(struct clk *clock, int divide)
 
 static void dsp_dev_clk_enable(struct dsp_dev *dev)
 {
-
 	if (dev->dsp_dvfs_node) {
 		clk_enable_dvfs(dev->dsp_dvfs_node);
 		dvfs_clk_prepare_enable(dev->dsp_dvfs_node);
@@ -89,6 +88,25 @@ static void dsp_dev_clk_disable(struct dsp_dev *dev)
 	} else {
 		clk_disable_unprepare(dev->clk_dsp);
 	}
+}
+
+unsigned long dsp_dev_get_freq(struct dsp_dev *dev)
+{
+	if (dev->dsp_dvfs_node)
+		return dvfs_clk_get_rate(dev->dsp_dvfs_node);
+	return 0;
+}
+
+int dsp_dev_set_freq(struct dsp_dev *dev, unsigned long dsp_rate)
+{
+	int ret = -ENXIO;
+
+	if (dev->dsp_dvfs_node) {
+		ret = dvfs_clk_set_rate(dev->dsp_dvfs_node, dsp_rate);
+		if (!ret && dev->clk_status != DSP_CLK_USER)
+			dev->clk_status = DSP_CLK_USER;
+	}
+	return ret;
 }
 
 static void dsp_grf_global_reset_assert(struct dsp_dev *dev)
@@ -146,7 +164,8 @@ static int dsp_dev_work_done(struct dsp_dev *dev, struct dsp_work *work)
 	 * Algorithms can request its satisfying DSP
 	 * rate respectively
 	 */
-	if (dev->dsp_dvfs_node && work->rate) {
+	if (dev->dsp_dvfs_node && work->rate &&
+	    dev->clk_status == DSP_CLK_AUTO) {
 		dvfs_clk_set_rate(dev->dsp_dvfs_node, work->rate);
 		dsp_debug(DEBUG_DEVICE, "request DSP rate=%d\n", work->rate);
 	}

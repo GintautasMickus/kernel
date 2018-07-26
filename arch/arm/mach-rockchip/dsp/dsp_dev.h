@@ -29,6 +29,11 @@
 #include "dsp_mbox.h"
 #include "dsp_work.h"
 
+enum dsp_clk_status {
+	DSP_CLK_AUTO   = 0,
+	DSP_CLK_USER   = 1,
+};
+
 enum dsp_status {
 	DSP_OFF      = 0,
 	DSP_ON       = 1,
@@ -80,6 +85,7 @@ struct dsp_dev {
 	u32 trace_index;
 
 	struct dvfs_node *dsp_dvfs_node;
+	enum dsp_clk_status clk_status;
 
 	struct clk *clk_dsp;
 	struct clk *clk_dsp_free;
@@ -100,6 +106,9 @@ struct dsp_dev {
 	/* Lock DSP device */
 	struct mutex lock;
 };
+
+unsigned long dsp_dev_get_freq(struct dsp_dev *dev);
+int dsp_dev_set_freq(struct dsp_dev *dev, unsigned long dsp_rate);
 
 int dsp_dev_register_client(struct dsp_dev *dev,
 			    struct dsp_dev_client *client);

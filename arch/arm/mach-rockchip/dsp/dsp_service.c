@@ -632,6 +632,47 @@ static const struct file_operations dsp_fops = {
 #endif
 };
 
+static ssize_t freq_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	unsigned long freq;
+	struct dsp_dev *dsp_dev;
+	struct rk_dsp *dsp = dev_get_drvdata(dev);
+
+	dsp_dev = dsp->service.dev;
+	if (!dsp_dev)
+		return -ENXIO;
+
+	freq = dsp_dev_get_freq(dsp_dev);
+	return scnprintf(buf, 16, "%lu\n", freq);
+}
+
+static ssize_t freq_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t size)
+{
+	ssize_t ret;
+	unsigned long freq;
+	struct dsp_dev *dsp_dev;
+	struct rk_dsp *dsp = dev_get_drvdata(dev);
+
+	dsp_dev = dsp->service.dev;
+	if (!dsp_dev)
+		return -ENXIO;
+
+	ret = kstrtoul(buf, 10, &freq);
+	if (ret)
+		return ret;
+
+	/* Set to auto adjust freq if input 0 */
+	if (!freq)
+		dsp_dev->clk_status = DSP_CLK_AUTO;
+	else if (!dsp_dev_set_freq(dsp_dev, freq))
+		pr_info("current dsp_freq: %lu\n", dsp_dev_get_freq(dsp_dev));
+	return size;
+}
+
+static DEVICE_ATTR_RW(freq);
+
 static int dsp_cdev_create(struct device *dev, struct rk_dsp *dsp)
 {
 	int ret = 0;
@@ -721,6 +762,11 @@ static int dsp_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, dsp);
 
+	ret = device_create_file(dev, &dev_attr_freq);
+	if (ret) {
+		dsp_err("create dsp freq file failed\n");
+		goto out;
+	}
 out:
 	if (ret && dsp)
 		dsp_cdev_destroy(dsp);
