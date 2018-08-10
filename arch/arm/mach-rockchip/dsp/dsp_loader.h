@@ -75,7 +75,6 @@ struct dsp_loader {
 	int reload_firmware;
 
 	/* Reserved dsp external text memory */
-	struct ion_handle *ext_text_hdl;
 	u8 *ext_text;
 };
 

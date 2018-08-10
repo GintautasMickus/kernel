@@ -15,6 +15,9 @@
 #include <linux/slab.h>
 #include <linux/err.h>
 #include <linux/vmalloc.h>
+#include <linux/of.h>
+#include <linux/io.h>
+#include <linux/of_address.h>
 #include "dsp_dbg.h"
 #include "dsp_loader.h"
 
@@ -48,6 +51,28 @@ struct dsp_firmware_header {
 	u32 image_size[FIRMWARE_MAX_IMAGES];
 	u8 reserve[FIRMWARE_RESERVE_SIZE];
 };
+
+static int dsp_loader_get_reserved_mem(u8 **vaddr)
+{
+	struct resource res;
+	struct device_node *node;
+
+	node = of_find_compatible_node(NULL, NULL, "dsp,reserved-memory");
+	if (!node) {
+		dsp_err("No dsp,reserved-memory found.\n");
+		return -ENODEV;
+	}
+
+	of_address_to_resource(node, 0, &res);
+	of_node_put(node);
+
+	*vaddr = ioremap(res.start, resource_size(&res));
+	if (!*vaddr) {
+		dsp_err("Get vaddr fail. Phy addr = %x\n", res.start);
+		return -EFAULT;
+	}
+	return 0;
+}
 
 static int dsp_loader_get_image_by_name(struct dsp_loader *loader,
 					const char *name,
@@ -420,15 +445,12 @@ int dsp_loader_create(struct dsp_dma *dma, struct ion_client *ion_client,
 		goto out;
 	}
 	loader->ion_client = ion_client;
-	loader->ext_text_hdl = ion_alloc(ion_client, (size_t)DSP_TEXT_MEM_SIZE,
-					 0, ION_HEAP(ION_CARVEOUT_HEAP_ID), 0);
-	if (IS_ERR(loader->ext_text_hdl)) {
-		dsp_err("cannnot alloc memory for dsp to run\n");
-		ret = PTR_ERR(loader->ext_text_hdl);
+
+	ret = dsp_loader_get_reserved_mem(&loader->ext_text);
+	if (ret) {
+		dsp_err("Can't get reserved memory\n");
 		goto out;
 	}
-	loader->ext_text = ion_map_kernel(loader->ion_client,
-					  loader->ext_text_hdl);
 
 	loader->dma = dma;
 	INIT_LIST_HEAD(&loader->images);
@@ -450,8 +472,7 @@ int dsp_loader_destroy(struct dsp_loader *loader)
 
 	dsp_debug_enter();
 	dsp_loader_release_image(loader);
-	ion_unmap_kernel(loader->ion_client, loader->ext_text_hdl);
-	ion_free(loader->ion_client, loader->ext_text_hdl);
+	iounmap(loader->ext_text);
 	kfree(loader);
 out:
 	dsp_debug_leave();
