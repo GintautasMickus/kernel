@@ -87,16 +87,23 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		/* memory region for dsp pool, start from 0x62000000 */
-		dsp {
-			compatible = "rockchip,ion-heap";
-			rockchip,ion_heap = <2>;
-			reg = <0x62000000 0x100000>; /* 1MB@32M */
-		};
 		ion_cma: rockchip,ion-heap@4 { /* CMA HEAP */
 			compatible = "rockchip,ion-heap";
 			rockchip,ion_heap = <4>;
 			reg = <0x00000000 0x08000000>; /* 128MB */
+		};
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		/* memory region for dsp pool, start from 0x62000000 */
+		dsp_reserved: dsp-reserved@0x62000000 {
+			no-map;
+			compatible = "dsp,reserved-memory";
+			reg = <0x62000000 0x100000>; /* 1MB */
 		};
 	};
 
