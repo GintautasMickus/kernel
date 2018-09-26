@@ -24,3 +24,8 @@ int spi_flash_init(void __iomem	*reg_addr)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(spi_flash_init);
+
+int snor_gc(void)
+{
+	return 0;
+}

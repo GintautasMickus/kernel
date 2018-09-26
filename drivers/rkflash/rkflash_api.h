@@ -20,6 +20,7 @@ unsigned int sftl_flash_get_capacity(void);
 void sftl_flash_deinit(void);
 int sftl_flash_resume(void __iomem *reg_addr);
 void nandc_clean_irq(void);
+int sftl_flash_gc(void);
 #endif
 
 #ifdef CONFIG_RK_SFC_NOR
@@ -30,6 +31,7 @@ unsigned int snor_get_capacity(void);
 void snor_deinit(void);
 int snor_resume(void __iomem *reg_addr);
 void sfc_clean_irq(void);
+int snor_gc(void);
 #endif
 
 #ifdef CONFIG_RK_SFC_NAND
@@ -40,6 +42,7 @@ unsigned int snand_get_capacity(void);
 void snand_deinit(void);
 int snand_resume(void __iomem *reg_addr);
 void sfc_clean_irq(void);
+int snand_gc(void);
 #endif
 
 #endif

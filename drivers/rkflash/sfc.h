@@ -10,7 +10,8 @@
 #ifndef _SFC_H
 #define _SFC_H
 
-#define SFC_VER_3		0x3 /* ver 3, else ver 1 */
+#define SFC_VER_1		0x1
+#define SFC_VER_3		0x3
 
 #ifndef BIT
 #define BIT(nr)			(1 << (nr))

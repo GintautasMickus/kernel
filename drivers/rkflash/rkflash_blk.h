@@ -36,6 +36,7 @@ struct flash_boot_ops {
 	u32 (*get_capacity)(void);
 	void (*deinit)(void);
 	int (*resume)(void __iomem *reg_addr);
+	int (*gc)(void);
 };
 
 struct flash_part {
@@ -126,5 +127,6 @@ void rkflash_dev_shutdown(void);
 void rkflash_dev_flush(void);
 int rkflash_dev_init(void __iomem *reg_addr, enum flash_con_type type);
 int rkflash_dev_exit(void);
-
+int rkflash_vendor_read(u32 sec, u32 n_sec, void *p_data);
+int rkflash_vendor_write(u32 sec, u32 n_sec, void *p_data);
 #endif

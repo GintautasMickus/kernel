@@ -101,6 +101,8 @@ int sfc_init(void __iomem *reg_addr)
 	sfc_reset();
 	writel(0, g_sfc_reg + SFC_CTRL);
 	sfc_ver = readl(g_sfc_reg + SFC_VER) & 0xffff;
+	if (sfc_ver < SFC_VER_3)
+		sfc_ver = SFC_VER_1;
 	return OK;
 }
 

@@ -50,6 +50,11 @@ int sftl_flash_read(u32 sec, u32 n_sec, void *p_data)
 	return 0;
 }
 
+int sftl_flash_gc(void)
+{
+	return sftl_gc();
+}
+
 void sftl_flash_deinit(void)
 {
 	u8 chip_sel = 0;
