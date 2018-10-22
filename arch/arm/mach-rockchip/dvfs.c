@@ -269,8 +269,6 @@ static int sys_stat_notifier_call(struct notifier_block *nb,
 			clk_cpu_dvfs_node->target_temp = cpu_target_temp;
 			dvfs_temp_unlimit_4k();
 		}
-		clk_cpu_dvfs_node->temp_limit_rate =
-			clk_cpu_dvfs_node->max_rate;
 		dvfs_clk_set_rate(clk_cpu_dvfs_node,
 				  clk_cpu_dvfs_node->last_set_rate);
 		mutex_unlock(&temp_limit_mutex);
@@ -1506,7 +1504,8 @@ static void dvfs_temp_limit(struct dvfs_node *dvfs_node, int temp)
 	//debounce
 	delta_temp = (dvfs_node->old_temp > temp) ? (dvfs_node->old_temp-temp) :
 	(temp-dvfs_node->old_temp);
-	if (delta_temp <= 1)
+	if (delta_temp <= 1 &&
+	    clk_cpu_dvfs_node->temp_limit_rate == clk_cpu_dvfs_node->max_rate)
 		return;
 
 	if (ROCKCHIP_PM_POLICY_PERFORMANCE == rockchip_pm_get_policy()) {
